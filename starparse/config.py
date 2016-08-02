@@ -1,0 +1,3 @@
+UTF8 = False
+BYTE_STRUCT = False
+ORDERED_DICT = True
