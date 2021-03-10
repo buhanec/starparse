@@ -98,24 +98,16 @@ def test_float(n: float):
     assert unpacked == n
 
 
-@pytest.mark.parametrize('packed, ordered, expected', [
-    (b'\x01', True, None),
-    (b'\x02', True, float),
-    (b'\x03', True, bool),
-    (b'\x04', True, int),
-    (b'\x05', True, str),
-    (b'\x06', True, list),
-    (b'\x07', True, dict),  # TODO: Check this is right...
-    (b'\x01', False, None),
-    (b'\x02', False, float),
-    (b'\x03', False, bool),
-    (b'\x04', False, int),
-    (b'\x05', False, str),
-    (b'\x06', False, list),
-    (b'\x07', False, dict),
+@pytest.mark.parametrize('packed, expected', [
+    (b'\x01', None),
+    (b'\x02', float),
+    (b'\x03', bool),
+    (b'\x04', int),
+    (b'\x05', str),
+    (b'\x06', list),
+    (b'\x07', dict),
 ])
-def test_types(packed: bytes, ordered: bool, expected: Any, monkeypatch):
-    monkeypatch.setattr(config, 'ORDERED_DICT', ordered)
+def test_types(packed: bytes, expected: Any, monkeypatch):
     unpacked, offset = unpack.type_(packed)
     assert offset == len(packed)
     assert unpacked == expected
