@@ -1,28 +1,28 @@
 """Utility functions."""
 
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def diff(a, b, context):
+def diff(a: Any, b: Any, context: str) -> int:
     """
     Diff two values.
 
     :param a: First value
     :param b: Second value
     :param context: Context placing the values relative to root values
-    :return True if diff present, False otherwise
+    :return: Count of diffs
     """
     if isinstance(a, dict) and isinstance(b, dict):
         return _dict_diff(a, b, context=context)
-    elif isinstance(a, list) and isinstance(b, list):
+    if isinstance(a, list) and isinstance(b, list):
         return _list_diff(a, b, context=context)
-    else:
-        return _generic_diff(a, b, context=context)
+    return _generic_diff(a, b, context=context)
 
 
-def _dict_diff(a, b, context='base'):
+def _dict_diff(a: Any, b: Any, context: str = 'base') -> int:
     a_extra = a.keys() - b.keys()
     b_extra = b.keys() - a.keys()
     diffs = 0
@@ -39,7 +39,7 @@ def _dict_diff(a, b, context='base'):
     return diffs
 
 
-def _list_diff(a, b, context='base'):
+def _list_diff(a: Any, b: Any, context: str = 'base') -> int:
     if len(a) != len(b):
         logger.warning(context)
         logger.warning('  list len mismatch: %d, %d', len(a), len(b))
@@ -50,7 +50,7 @@ def _list_diff(a, b, context='base'):
     return diffs
 
 
-def _generic_diff(a, b, context='base'):
+def _generic_diff(a: Any, b: Any, context: str = 'base') -> int:
     if a != b:
         logger.warning(context)
         logger.warning('  generic mismatch')

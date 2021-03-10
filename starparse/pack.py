@@ -17,7 +17,7 @@ class PackingError(Exception):
     """Packing error."""
 
 
-def coerce(f):
+def _coerce(f):
     @wraps(f)
     def wrapper(value):
         expecting = f.__annotations__['value']
@@ -38,30 +38,17 @@ def coerce(f):
     return wrapper
 
 
-def optional_arg_decorator(fn):
-    def wrapped_decorator(*args):
-        if len(args) == 1 and callable(args[0]):
-            return fn(args[0])
-        else:
-            def real_decorator(decorate):
-                return fn(decorate, *args)
-
-            return real_decorator
-
-    return wrapped_decorator
-
-
-@coerce
+@_coerce
 def uint(value: int) -> bytearray:
     """
     Pack type to Starbound format.
+
     :param value: unsigned int
     :return: bytearray
+    :raises PackingError: when int negative
     """
     if value < 0:
-        error = 'unsigned int cannot be negative: {0}'.format(value)
-        logging.exception(error)
-        raise PackingError(error)
+        raise PackingError(f'unsigned int cannot be negative: {value}')
     result = bytearray()
     result.insert(0, value & 127)
     value >>= 7
@@ -71,10 +58,11 @@ def uint(value: int) -> bytearray:
     return result
 
 
-@coerce
+@_coerce
 def int_(value: int) -> bytearray:
     """
     Pack int to Starbound format.
+
     :param value: int
     :return: bytearray
     """
@@ -84,51 +72,54 @@ def int_(value: int) -> bytearray:
     return uint(value_)
 
 
-@coerce
+@_coerce
 def str_(value: str) -> bytearray:
     """
     Pack string to Starbound format.
+
     :param value: string
     :return: bytearray
+    :raises PackingError: when string encoding error
     """
     result = uint(len(value))
     try:
         result.extend(bytearray(value, 'ascii'))
-    except UnicodeEncodeError:
-        error = 'string ASCII encoding error: {0}'.format(value)
+    except UnicodeEncodeError as e:
         if config.UTF8:
-            logging.warning(error)
             result.extend(bytearray(value, 'utf-8'))
         else:
-            logging.exception(error)
-            raise PackingError(error)
+            raise PackingError(f'string encoding error: {value!r}') from e
     return result
 
 
-@coerce
+@_coerce
 def bool_(value: bool) -> bytearray:
     """
     Pack bool to Starbound format.
+
     :param value: bool
     :return: bytearray
     """
     return bytearray([value])
 
 
+# pylint: disable=unused-argument
 # noinspection PyUnusedLocal
 def none(value: Any = None) -> bytearray:
     """
     Pack None/unset to Starbound format.
+
     :param value: unused
     :return: bytearray
     """
     return bytearray()
 
 
-@coerce
+@_coerce
 def float_(value: float) -> bytearray:
     """
     Pack float to Starbound format.
+
     :param value: float
     :return: bytearray
     """
@@ -138,24 +129,26 @@ def float_(value: float) -> bytearray:
 def type_(value: type) -> bytearray:
     """
     Pack type to Starbound format.
+
     :param value: type
     :return: bytearray
+    :raises PackingError: when unsupported value type
     """
     types = dict(zip((type(None), float, bool, int, str, list, dict),
                      range(1, 8)))
     types[OrderedDict] = types[dict]
     try:
-        return uint(types[value])
-    except KeyError:
-        error = 'unsupported value type: {0}'.format(value)
-        logger.exception(error)
-        raise PackingError(error)
+        value_type = types[value]
+    except KeyError as e:
+        raise PackingError(f'unsupported value type: {value}') from e
+    return uint(value_type)
 
 
-@coerce
+@_coerce
 def list_(value: List[SBT]) -> bytearray:
     """
     Pack list to Starbound format.
+
     :param value: type
     :return: bytearray
     """
@@ -165,10 +158,11 @@ def list_(value: List[SBT]) -> bytearray:
     return result
 
 
-@coerce
+@_coerce
 def dict_(value: Dict[str, SBT]) -> bytearray:
     """
     Pack dict to Starbound format.
+
     :param value: type
     :return: bytearray
     """
@@ -182,6 +176,7 @@ def dict_(value: Dict[str, SBT]) -> bytearray:
 def typed(value: SBT) -> bytearray:
     """
     Pack type and value to Starbound format.
+
     :param value: value
     :return: bytearray
     """
@@ -201,4 +196,12 @@ def typed(value: SBT) -> bytearray:
 
 
 def header(save_format: bytes, entity: str, flags: List[int]) -> bytearray:
+    """
+    Pack Starbound header to Starbound format.
+
+    :param save_format: save format
+    :param entity: entity
+    :param flags: flags
+    :return: bytearray
+    """
     return bytearray(save_format) + str_(entity) + bytearray(flags)

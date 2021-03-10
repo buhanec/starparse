@@ -24,26 +24,22 @@ def struct(fmt: str, buffer: bytes, offset: int = 0) -> Tuple[Any, int]:
     :param buffer: Starbound save file
     :param offset: Starbound save file format
     :return: data, new offset
+    :raises UnpackingError: when format not as expected
     """
     result = unpack_from(fmt, buffer, offset)
     offset += calcsize(fmt)
     if all(isinstance(b, bytes) for b in result):
         try:
             result = b''.join(result).decode('ascii')
-        except UnicodeDecodeError:
-            error = 'ASCII decoding error {0}'.format(result)
+        except UnicodeDecodeError as e:
             if config.UTF8:
                 result = b''.join(result).decode('utf-8')
-                logging.warning('%d | struct %s', offset, error)
             else:
-                logging.exception('%d | struct %s', offset, error)
-                raise UnpackingError(error)
+                raise UnpackingError(f'ASCII decoding error {result!r}') from e
     elif len(result) == 1:
         result = result[0]
     elif not config.BYTE_STRUCT:
-        error = 'Multiple non-bytes in bytearray'
-        logging.exception('%d | struct %s', error)
-        raise UnpackingError(error)
+        raise UnpackingError('Multiple non-bytes in bytearray')
     return result, offset
 
 
@@ -111,6 +107,7 @@ def bool_(buffer: bytes, offset: int = 0) -> Tuple[bool, int]:
     return bool(buffer[offset]), offset + 1
 
 
+# pylint: disable=unused-argument
 # noinspection PyUnusedLocal
 def none(buffer: bytes, offset: int = 0) -> Tuple[None, int]:
     """
@@ -141,15 +138,13 @@ def type_(buffer: bytes, offset: int = 0) -> Tuple[Optional[type], int]:
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: type, new offset
+    :raises UnpackingError: when format not as expected
     """
     types = [None, float, bool, int, str, list, dict]
     index, offset = uint(buffer, offset)
-    try:
-        return types[index - 1], offset
-    except IndexError:
-        error = 'unsupported value type: {0}'.format(index)
-        logger.exception('%d | type -> %s', offset, error)
-        raise UnpackingError(error)
+    if index >= len(types):
+        raise UnpackingError(f'Unsupported value type: {index}')
+    return types[index - 1], offset
 
 
 def list_(buffer: bytes, offset: int = 0) -> Tuple[List[SBT], int]:
@@ -189,6 +184,13 @@ def dict_(buffer: bytes, offset: int = 0) -> Tuple[Dict[str, SBT], int]:
 
 
 def typed(buffer: bytes, offset: int = 0) -> Tuple[SBT, int]:
+    """
+    Unpack a typed data structure from the buffer at a given offset.
+
+    :param buffer: buffer to read
+    :param offset: offset in buffer
+    :return: unpacked data
+    """
     handlers = {
         None: none,
         bool: bool_,
@@ -204,6 +206,13 @@ def typed(buffer: bytes, offset: int = 0) -> Tuple[SBT, int]:
 
 
 def header(buffer: bytes, offset: int = 0) -> Tuple[bytes, str, List[int], int]:
+    """
+    Unpack a Starbound header structure from the buffer at a given offset.
+
+    :param buffer: buffer to read
+    :param offset: offset in buffer
+    :return: Starbound header
+    """
     save_format = buffer[offset:offset + 6]
     offset += 6
     entity, offset = str_(buffer, offset=offset)
