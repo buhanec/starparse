@@ -1,3 +1,5 @@
-from starparse import unpack, pack
-import logging
-logger = logging.getLogger(__name__)
+"""Starbound save parser."""
+
+from starparse import pack, unpack
+
+__all__ = ('pack', 'unpack')
