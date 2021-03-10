@@ -4,4 +4,4 @@ Small Python project to parse save game files for Starbound.
 
 Works with 1.0.x / nightly save files, both to unpack and re-pack.
 
-Look at `starparse/tests/test_ci.py` for an example of reading a save file.
+Look at [`tests/test_e2e.py`](tests/test_e2e.py) for an example of reading a save file.
