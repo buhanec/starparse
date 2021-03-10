@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Union
 
 from starparse import config
 
-logger = logging.getLogger(__name__)
-
 SBT = Union[str, int, float, list, dict, OrderedDict]
 
 
