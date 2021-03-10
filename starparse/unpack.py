@@ -1,22 +1,25 @@
-from typing import Tuple, Union, List, Dict, Optional, Any
-from struct import unpack_from, calcsize
-from collections import OrderedDict
-from starparse import config
-import logging
-logger = logging.getLogger(__name__)
+"""Unpacking functionality."""
 
+from collections import OrderedDict
+import logging
+from struct import calcsize, unpack_from
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from starparse import config
+
+logger = logging.getLogger(__name__)
 
 SBT = Union[str, int, float, list, dict, OrderedDict]
 
 
 class UnpackingError(Exception):
-
     """Unpacking error."""
 
 
-def struct(fmt: str, buffer: bytes, offset: int=0) -> Tuple[Any, int]:
+def struct(fmt: str, buffer: bytes, offset: int = 0) -> Tuple[Any, int]:
     """
     Unpack struct from Starbound save file.
+
     :param fmt: struct format
     :param buffer: Starbound save file
     :param offset: Starbound save file format
@@ -44,9 +47,10 @@ def struct(fmt: str, buffer: bytes, offset: int=0) -> Tuple[Any, int]:
     return result, offset
 
 
-def uint(buffer: bytes, offset: int=0) -> Tuple[int, int]:
+def uint(buffer: bytes, offset: int = 0) -> Tuple[int, int]:
     """
     Unpack unsigned int from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: unsigned int, new offset
@@ -61,9 +65,10 @@ def uint(buffer: bytes, offset: int=0) -> Tuple[int, int]:
     return value, offset
 
 
-def int_(buffer: bytes, offset: int=0) -> Tuple[int, int]:
+def int_(buffer: bytes, offset: int = 0) -> Tuple[int, int]:
     """
     Unpack signed int from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: int, new offset
@@ -82,9 +87,10 @@ def int_(buffer: bytes, offset: int=0) -> Tuple[int, int]:
     return value, offset
 
 
-def str_(buffer: bytes, offset: int=0) -> Tuple[str, int]:
+def str_(buffer: bytes, offset: int = 0) -> Tuple[str, int]:
     """
     Unpack str from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: str, new offset
@@ -94,9 +100,10 @@ def str_(buffer: bytes, offset: int=0) -> Tuple[str, int]:
     return struct(fmt, buffer, offset)
 
 
-def bool_(buffer: bytes, offset: int=0) -> Tuple[bool, int]:
+def bool_(buffer: bytes, offset: int = 0) -> Tuple[bool, int]:
     """
     Unpack bool from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: bool, new offset
@@ -105,9 +112,10 @@ def bool_(buffer: bytes, offset: int=0) -> Tuple[bool, int]:
 
 
 # noinspection PyUnusedLocal
-def none(buffer: bytes, offset: int=0) -> Tuple[None, int]:
+def none(buffer: bytes, offset: int = 0) -> Tuple[None, int]:
     """
     Unpack None/unset from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: None, new offset
@@ -115,9 +123,10 @@ def none(buffer: bytes, offset: int=0) -> Tuple[None, int]:
     return None, offset
 
 
-def float_(buffer: bytes, offset: int=0) -> Tuple[float, int]:
+def float_(buffer: bytes, offset: int = 0) -> Tuple[float, int]:
     """
     Unpack float from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: float, new offset
@@ -125,9 +134,10 @@ def float_(buffer: bytes, offset: int=0) -> Tuple[float, int]:
     return struct('>d', buffer, offset)
 
 
-def type_(buffer: bytes, offset: int=0) -> Tuple[Optional[type], int]:
+def type_(buffer: bytes, offset: int = 0) -> Tuple[Optional[type], int]:
     """
     Unpack type from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: type, new offset
@@ -142,9 +152,10 @@ def type_(buffer: bytes, offset: int=0) -> Tuple[Optional[type], int]:
         raise UnpackingError(error)
 
 
-def list_(buffer: bytes, offset: int=0) -> Tuple[List[SBT], int]:
+def list_(buffer: bytes, offset: int = 0) -> Tuple[List[SBT], int]:
     """
     Unpack list from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: list, new offset
@@ -157,9 +168,10 @@ def list_(buffer: bytes, offset: int=0) -> Tuple[List[SBT], int]:
     return result, offset
 
 
-def dict_(buffer: bytes, offset: int=0) -> Tuple[Dict[str, SBT], int]:
+def dict_(buffer: bytes, offset: int = 0) -> Tuple[Dict[str, SBT], int]:
     """
     Unpack dict from Starbound save file.
+
     :param buffer: Starbound save file
     :param offset: position in Starbound save file
     :return: dict, new offset
@@ -176,7 +188,7 @@ def dict_(buffer: bytes, offset: int=0) -> Tuple[Dict[str, SBT], int]:
     return result, offset
 
 
-def typed(buffer: bytes, offset: int=0) -> Tuple[SBT, int]:
+def typed(buffer: bytes, offset: int = 0) -> Tuple[SBT, int]:
     handlers = {
         None: none,
         bool: bool_,
@@ -191,7 +203,7 @@ def typed(buffer: bytes, offset: int=0) -> Tuple[SBT, int]:
     return value, offset
 
 
-def header(buffer: bytes, offset: int=0) -> Tuple[bytes, str, List[int], int]:
+def header(buffer: bytes, offset: int = 0) -> Tuple[bytes, str, List[int], int]:
     save_format = buffer[offset:offset + 6]
     offset += 6
     entity, offset = str_(buffer, offset=offset)

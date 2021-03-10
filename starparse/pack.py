@@ -1,17 +1,19 @@
-from typing import Union, Dict, Any, List
-from struct import pack
+"""Packing functionality."""
+
 from collections import OrderedDict
 from functools import wraps
-from starparse import config
 import logging
-logger = logging.getLogger(__name__)
+from struct import pack
+from typing import Any, Dict, List, Union
 
+from starparse import config
+
+logger = logging.getLogger(__name__)
 
 SBT = Union[str, int, float, list, dict, OrderedDict]
 
 
 class PackingError(Exception):
-
     """Packing error."""
 
 
@@ -19,9 +21,9 @@ def coerce(f):
     @wraps(f)
     def wrapper(value):
         expecting = f.__annotations__['value']
-        if expecting.__name__ == 'List':
+        if expecting.__module__ == 'typing' and expecting.__origin__ is list:
             expecting = list
-        elif expecting.__name__ == 'Dict':
+        elif expecting.__module__ == 'typing' and expecting.__origin__ is dict:
             if config.ORDERED_DICT:
                 expecting = OrderedDict
             else:
@@ -32,6 +34,7 @@ def coerce(f):
                           expecting.__name__, type(value).__name__, value)
             value = expecting(value)
         return f(value)
+
     return wrapper
 
 
@@ -42,7 +45,9 @@ def optional_arg_decorator(fn):
         else:
             def real_decorator(decorate):
                 return fn(decorate, *args)
+
             return real_decorator
+
     return wrapped_decorator
 
 
@@ -111,7 +116,7 @@ def bool_(value: bool) -> bytearray:
 
 
 # noinspection PyUnusedLocal
-def none(value: Any=None) -> bytearray:
+def none(value: Any = None) -> bytearray:
     """
     Pack None/unset to Starbound format.
     :param value: unused
@@ -127,7 +132,7 @@ def float_(value: float) -> bytearray:
     :param value: float
     :return: bytearray
     """
-    return pack('>d', value)
+    return bytearray(pack('>d', value))
 
 
 def type_(value: type) -> bytearray:
