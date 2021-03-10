@@ -142,7 +142,7 @@ def type_(buffer: bytes, offset: int = 0) -> Tuple[Optional[type], int]:
     """
     types = [None, float, bool, int, str, list, dict]
     index, offset = uint(buffer, offset)
-    if index >= len(types):
+    if index > len(types):
         raise UnpackingError(f'Unsupported value type: {index}')
     return types[index - 1], offset
 
