@@ -1,7 +1,6 @@
 """Unpacking functionality."""
 
 from collections import OrderedDict
-import logging
 from struct import calcsize, unpack_from
 from typing import Any, Dict, List, Optional, Tuple, Union
 
