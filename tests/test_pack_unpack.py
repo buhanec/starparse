@@ -99,7 +99,7 @@ def test_float(n: float):
 
 
 @pytest.mark.parametrize('packed, expected', [
-    (b'\x01', None),
+    (b'\x01', type(None)),
     (b'\x02', float),
     (b'\x03', bool),
     (b'\x04', int),
@@ -133,7 +133,9 @@ def test_list(value: List[Any]):
     {"a": "a", "b": 2},
     {"a": {"b": {}}},
 ])
-def test_dict(value: Dict[Any, Any]):
+def test_dict(value: Dict[Any, Any], monkeypatch):
+    monkeypatch.setattr(config, 'ORDERED_DICT', False)
+
     packed = pack.dict_(value)
     unpacked, offset = unpack.dict_(packed)
     assert offset == len(packed)

@@ -2,12 +2,12 @@
 
 from collections import OrderedDict
 from functools import wraps
-import logging
 from struct import pack
-from typing import Any, Dict, List, Union
+from typing import Any, Callable, Dict, List, TypeVar, Union
 
 from starparse import config
 
+T = TypeVar('T')
 SBT = Union[str, int, float, list, dict, OrderedDict]
 
 
@@ -15,7 +15,13 @@ class PackingError(Exception):
     """Packing error."""
 
 
-def _coerce(f):
+def check_type(f: Callable[[T], bytearray]) -> Callable[[T], bytearray]:
+    """
+    Check function argument type.
+
+    :param f: function to check param value for
+    :return: function with param value checking
+    """
     @wraps(f)
     def wrapper(value):
         expecting = f.__annotations__['value']
@@ -27,16 +33,16 @@ def _coerce(f):
             else:
                 expecting = dict
         if not isinstance(value, expecting):
-            logging.error('%s.%s expecting %s but got %s: %s',
-                          f.__module__, f.__name__,
-                          expecting.__name__, type(value).__name__, value)
-            value = expecting(value)
+            raise TypeError(f'{f.__module__}.{f.__name__} expecting '
+                            f'{expecting.__name__} but got '
+                            f'{type(value).__name__} ({value!r})')
+
         return f(value)
 
     return wrapper
 
 
-@_coerce
+@check_type
 def uint(value: int) -> bytearray:
     """
     Pack type to Starbound format.
@@ -56,7 +62,7 @@ def uint(value: int) -> bytearray:
     return result
 
 
-@_coerce
+@check_type
 def int_(value: int) -> bytearray:
     """
     Pack int to Starbound format.
@@ -70,7 +76,7 @@ def int_(value: int) -> bytearray:
     return uint(value_)
 
 
-@_coerce
+@check_type
 def str_(value: str) -> bytearray:
     """
     Pack string to Starbound format.
@@ -90,7 +96,7 @@ def str_(value: str) -> bytearray:
     return result
 
 
-@_coerce
+@check_type
 def bool_(value: bool) -> bytearray:
     """
     Pack bool to Starbound format.
@@ -113,7 +119,7 @@ def none(value: Any = None) -> bytearray:
     return bytearray()
 
 
-@_coerce
+@check_type
 def float_(value: float) -> bytearray:
     """
     Pack float to Starbound format.
@@ -142,7 +148,7 @@ def type_(value: type) -> bytearray:
     return uint(value_type)
 
 
-@_coerce
+@check_type
 def list_(value: List[SBT]) -> bytearray:
     """
     Pack list to Starbound format.
@@ -156,7 +162,7 @@ def list_(value: List[SBT]) -> bytearray:
     return result
 
 
-@_coerce
+@check_type
 def dict_(value: Dict[str, SBT]) -> bytearray:
     """
     Pack dict to Starbound format.
@@ -178,7 +184,7 @@ def typed(value: SBT) -> bytearray:
     :param value: value
     :return: bytearray
     """
-    handlers = {
+    handlers: Dict[type, Callable[[Any], bytearray]] = {
         type(None): none,
         bool: bool_,
         int: int_,

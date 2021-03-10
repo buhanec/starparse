@@ -2,7 +2,7 @@
 
 import os
 
-__all__ = ('UTF8', 'BYTE_STRUCT', 'ORDERED_DICT')
+__all__ = ('UTF8', 'ORDERED_DICT')
 
 
 def _bool(env_var: str, default: bool) -> bool:
@@ -12,5 +12,4 @@ def _bool(env_var: str, default: bool) -> bool:
 
 
 UTF8 = _bool('STARPARSE_UTF8', False)
-BYTE_STRUCT = _bool('STARPARSE_BYTE_STRUCT', False)
 ORDERED_DICT = _bool('STARPARSE_ORDERED_DICT', True)

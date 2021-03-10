@@ -2,11 +2,11 @@
 
 from collections import OrderedDict
 from struct import calcsize, unpack_from
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from starparse import config
 
-SBT = Union[str, int, float, list, dict, OrderedDict]
+SBT = Union[None, str, int, float, list, dict, OrderedDict]
 
 
 class UnpackingError(Exception):
@@ -23,21 +23,25 @@ def struct(fmt: str, buffer: bytes, offset: int = 0) -> Tuple[Any, int]:
     :return: data, new offset
     :raises UnpackingError: when format not as expected
     """
-    result = unpack_from(fmt, buffer, offset)
+    unpacked = unpack_from(fmt, buffer, offset)
     offset += calcsize(fmt)
-    if all(isinstance(b, bytes) for b in result):
+
+    # Unpacking string, join all bytes and decode
+    if all(isinstance(b, bytes) for b in unpacked):
         try:
-            result = b''.join(result).decode('ascii')
+            result = b''.join(unpacked).decode('ascii')
         except UnicodeDecodeError as e:
             if config.UTF8:
-                result = b''.join(result).decode('utf-8')
+                result = b''.join(unpacked).decode('utf-8')
             else:
-                raise UnpackingError(f'ASCII decoding error {result!r}') from e
-    elif len(result) == 1:
-        result = result[0]
-    elif not config.BYTE_STRUCT:
-        raise UnpackingError('Multiple non-bytes in bytearray')
-    return result, offset
+                raise UnpackingError(f'ASCII decoding error {unpacked}') from e
+        return result, offset
+
+    # Single type (float, int, ...)
+    if len(unpacked) == 1:
+        return unpacked[0], offset
+
+    raise UnpackingError('Multiple non-bytes in bytearray')
 
 
 def uint(buffer: bytes, offset: int = 0) -> Tuple[int, int]:
@@ -128,7 +132,7 @@ def float_(buffer: bytes, offset: int = 0) -> Tuple[float, int]:
     return struct('>d', buffer, offset)
 
 
-def type_(buffer: bytes, offset: int = 0) -> Tuple[Optional[type], int]:
+def type_(buffer: bytes, offset: int = 0) -> Tuple[type, int]:
     """
     Unpack type from Starbound save file.
 
@@ -137,7 +141,7 @@ def type_(buffer: bytes, offset: int = 0) -> Tuple[Optional[type], int]:
     :return: type, new offset
     :raises UnpackingError: when format not as expected
     """
-    types = [None, float, bool, int, str, list, dict]
+    types = [type(None), float, bool, int, str, list, dict]
     index, offset = uint(buffer, offset)
     if index > len(types):
         raise UnpackingError(f'Unsupported value type: {index}')
@@ -169,14 +173,18 @@ def dict_(buffer: bytes, offset: int = 0) -> Tuple[Dict[str, SBT], int]:
     :return: dict, new offset
     """
     length, offset = uint(buffer, offset)
+
+    result: Dict[str, SBT]
     if config.ORDERED_DICT:
         result = OrderedDict()
     else:
         result = {}
+
     for _ in range(length):
         key, offset = str_(buffer, offset)
         item, offset = typed(buffer, offset)
         result[key] = item
+
     return result, offset
 
 
@@ -189,7 +197,7 @@ def typed(buffer: bytes, offset: int = 0) -> Tuple[SBT, int]:
     :return: unpacked data
     """
     handlers = {
-        None: none,
+        type(None): none,
         bool: bool_,
         int: int_,
         float: float_,
