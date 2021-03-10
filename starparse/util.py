@@ -3,6 +3,8 @@
 import logging
 from typing import Any
 
+__all__ = ('diff',)
+
 logger = logging.getLogger(__name__)
 
 

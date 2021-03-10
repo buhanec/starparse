@@ -6,6 +6,9 @@ from typing import Any, Dict, List, Tuple, Union
 
 from starparse import config
 
+__all__ = ('UnpackingError', 'struct', 'uint', 'int_', 'str_', 'bool_',
+           'none', 'float_', 'type_', 'list_', 'dict_', 'typed', 'header')
+
 SBT = Union[None, str, int, float, list, dict, OrderedDict]
 
 
