@@ -28,9 +28,11 @@ def check_type(f: Callable[[T], bytearray]) -> Callable[[T], bytearray]:
     @wraps(f)
     def wrapper(value):
         expecting = f.__annotations__['value']
-        if expecting.__module__ == 'typing' and expecting.__origin__ is list:
+        if (expecting.__module__ == 'typing'
+                and expecting.__origin__ in (list, List)):
             expecting = list
-        elif expecting.__module__ == 'typing' and expecting.__origin__ is dict:
+        elif (expecting.__module__ == 'typing'
+              and expecting.__origin__ in (dict, Dict)):
             if config.ORDERED_DICT:
                 expecting = OrderedDict
             else:
