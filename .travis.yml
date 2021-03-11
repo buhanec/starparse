@@ -47,11 +47,12 @@ jobs:
         - python -m pip install --upgrade pip
       env:
         - PATH=/c/Python39:/c/Python39/Scripts:/c/tools/bin:$PATH**
-    - name: 'Python: nightly'
-      language: shell
-      os: windows
-      before_install:
-        - choco install python --pre
-        - python -m pip install --upgrade pip
-      env:
-        - PATH=/c/Python310:/c/Python310/Scripts:/c/tools/bin:$PATH**
+    # TODO: typed-ast does not compile, review at a later date
+    # - name: 'Python: nightly'
+    #   language: shell
+    #   os: windows
+    #   before_install:
+    #     - choco install python --pre
+    #     - python -m pip install --upgrade pip
+    #   env:
+    #     - PATH=/c/Python310:/c/Python310/Scripts:/c/tools/bin:$PATH**
