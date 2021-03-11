@@ -1,13 +1,23 @@
 from collections import OrderedDict
 import math
 from string import printable
-from typing import Any, Dict, List, OrderedDict as OrderedDict_
+from typing import Any, Dict, List, TYPE_CHECKING
 
 from hypothesis import example, given
 from hypothesis.strategies import floats, integers, text
 import pytest
 
 from starparse import config, pack, unpack
+
+if TYPE_CHECKING:
+    import sys
+
+    if sys.version_info >= (3, 9):
+        OrderedDict_ = OrderedDict
+    elif sys.version_info >= (3, 7, 2):
+        from typing import OrderedDict as OrderedDict_
+    else:
+        OrderedDict_ = Dict
 
 
 def parity(packer, unpacker, reference, asserter, packed_reference=None):

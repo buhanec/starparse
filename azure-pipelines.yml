@@ -25,6 +25,9 @@ pool:
 
 strategy:
   matrix:
+    linux36:
+      versionSpec: '3.6'
+      vmImage: ubuntu-latest
     linux37:
       versionSpec: '3.7'
       vmImage: ubuntu-latest
@@ -34,6 +37,9 @@ strategy:
     linux39:
       versionSpec: '3.9'
       vmImage: ubuntu-latest
+    windows36:
+      versionSpec: '3.6'
+      vmImage: windows-latest
     windows37:
       versionSpec: '3.7'
       vmImage: windows-latest
