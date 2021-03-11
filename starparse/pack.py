@@ -3,7 +3,7 @@
 from collections import OrderedDict
 from functools import wraps
 from struct import pack
-from typing import Any, Callable, Dict, List, TypeVar, Union
+from typing import Any, Callable, Dict, List, TypeVar, Union, get_type_hints
 
 from starparse import config
 
@@ -27,11 +27,11 @@ def check_type(f: Callable[[T], bytearray]) -> Callable[[T], bytearray]:
     """
     @wraps(f)
     def wrapper(value):
-        expecting = f.__annotations__['value']
-        if (getattr(expecting, '__module__', None) == 'typing'
+        expecting = get_type_hints(f)['value']
+        if (expecting.__module__ == 'typing'
                 and expecting.__origin__ in (list, List)):
             expecting = list
-        elif (getattr(expecting, '__module__', None) == 'typing'
+        elif (expecting.__module__  == 'typing'
               and expecting.__origin__ in (dict, Dict)):
             if config.ORDERED_DICT:
                 expecting = OrderedDict
