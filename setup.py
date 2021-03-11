@@ -6,7 +6,7 @@ with open('README.md') as f:
 setup(
     name='starparse',
     packages=find_packages(),
-    version='0.1.0',
+    version='0.1.1',
     author='Alen Buhanec',
     author_email='<alen.buhanec@gmail.com>',
     license='MIT',
