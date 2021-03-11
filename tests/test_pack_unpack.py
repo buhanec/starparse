@@ -158,7 +158,7 @@ def test_dict(value: Dict[Any, Any], monkeypatch):
     OrderedDict({"a": "a", "b": 2}),
     OrderedDict({"a": OrderedDict({"b": OrderedDict({})})}),
 ])
-def test_dict_ordered(value: OrderedDict_[Any, Any], monkeypatch):
+def test_dict_ordered(value: 'OrderedDict_[Any, Any]', monkeypatch):
     monkeypatch.setattr(config, 'ORDERED_DICT', True)
 
     packed = pack.dict_(value)
