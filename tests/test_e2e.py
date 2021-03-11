@@ -1,4 +1,7 @@
-from importlib.resources import read_binary
+try:
+    from importlib.resources import read_binary
+except ModuleNotFoundError:
+    from importlib_resources import read_binary
 import itertools
 
 import pytest

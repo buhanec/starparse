@@ -20,6 +20,8 @@ hypothesis==6.7.0
     # via -r requirements.in
 iniconfig==1.1.1
     # via pytest
+importlib_resources; python_version < '3.7'
+    # via -r requirements.in (manual)
 isort==5.7.0
     # via pylint
 lazy-object-proxy==1.5.2
